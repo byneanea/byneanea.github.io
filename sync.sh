@@ -7,13 +7,15 @@ REPO="/Users/benniyan/Documents/GitHub/byneanea.github.io"
 # ── 1. 同步文件 ────────────────────────────────────────────
 echo "同步文章..."
 
-# 同步2026年（可按同样格式添加更多年份）
-for folder in 2026/01 2026/02; do
-  src="$VAULT/$folder"
-  dst="$REPO/notes2026/$(basename $folder)"
-  [ -d "$src" ] || continue
-  mkdir -p "$dst"
-  find "$src" -name "*.md" ! -name "*副本*" -exec cp -u {} "$dst/" \;
+# 同步各年份笔记
+for year in 2024 2025 2026; do
+  for sub in "$VAULT/$year"/*/; do
+    [ -d "$sub" ] || continue
+    folder=$(basename "$sub")
+    dst="$REPO/notes${year}/${folder}"
+    mkdir -p "$dst"
+    rsync -a --exclude="*副本*" --include="*.md" --exclude="*" "$sub" "$dst/"
+  done
 done
 
 # ── 2. 重建 index.md ───────────────────────────────────────

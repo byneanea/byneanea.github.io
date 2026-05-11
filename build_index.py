@@ -77,7 +77,7 @@ html = f"""<!DOCTYPE html>
 </style>
 </head>
 <body>
-<h1>新饭笔记 2026</h1>
+<h1>新饭笔记</h1>
 <p class="meta">共 {total} 篇文章</p>
 <hr>
 {items_html}
