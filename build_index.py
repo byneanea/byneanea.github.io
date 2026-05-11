@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""重建 index.md，扫描所有 新饭笔记XXXX 目录"""
+"""重建 index.html，扫描所有 notes XXXX 目录"""
 import os, re
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -10,20 +10,24 @@ def display(filename):
     return name
 
 def month_key(filename):
-    """返回用于排序/分组的月份标签"""
     m = re.match(r'^(\d{4})(\d{2})\d{2}', filename)
     if m:
-        return f"{m.group(1)}年{int(m.group(2))}月"
+        return (int(m.group(1)), int(m.group(2)))
     m = re.match(r'^(\d+)月', filename)
     if m:
-        return f"2026年{int(m.group(1))}月"
+        return (2026, int(m.group(1)))
     m = re.match(r'^(\d{4})-(\d{2})', filename)
     if m:
-        return f"{m.group(1)}年{int(m.group(2))}月"
-    return "其他"
+        return (int(m.group(1)), int(m.group(2)))
+    return (9999, 99)
+
+def month_label(key):
+    if key == (9999, 99):
+        return "专题文章"
+    return f"{key[0]}年{key[1]}月"
 
 # 收集所有文章
-articles = {}  # month -> [(rel_path, filename)]
+articles = {}
 
 for entry in sorted(os.listdir(BASE)):
     if not re.match(r'^notes\d{4}$', entry):
@@ -36,50 +40,57 @@ for entry in sorted(os.listdir(BASE)):
         for f in sorted(os.listdir(sub_dir)):
             if not f.endswith('.md') or '副本' in f:
                 continue
-            month = month_key(f)
+            key = month_key(f)
             rel = f"{entry}/{sub}/{f}"
-            articles.setdefault(month, []).append((rel, f))
+            articles.setdefault(key, []).append((rel, f))
 
-# 月份排序
-def sort_month(m):
-    match = re.match(r'(\d+)年(\d+)月', m)
-    return (int(match.group(1)), int(match.group(2))) if match else (9999, 99)
-
-sorted_months = sorted(articles.keys(), key=sort_month)
+sorted_months = sorted(articles.keys())
 total = sum(len(v) for v in articles.values())
 
-lines = [
-    "---",
-    "title: 新饭笔记",
-    "---",
-    "",
-    "# 新饭笔记",
-    "",
-    f"> 共 {total} 篇文章",
-    "",
-    "---",
-    "",
-]
-
-for month in sorted_months:
-    files = articles[month]
-    label = "专题文章" if month == "其他" else month
-    lines.append(f"## {label}（{len(files)} 篇）")
-    lines.append("")
+# Build HTML
+items_html = ""
+for key in sorted_months:
+    files = articles[key]
+    label = month_label(key)
+    items_html += f'<h2>{label}（{len(files)} 篇）</h2>\n<ul>\n'
     for rel, fname in files:
-        lines.append(f"- [{display(fname)}]({rel})")
-    lines.append("")
+        title = display(fname)
+        items_html += f'  <li><a href="article.html?file={rel}">{title}</a></li>\n'
+    items_html += '</ul>\n'
 
-lines += [
-    "---",
-    "",
-    "## 其他",
-    "",
-    "- [李国飞最新分享 · 价值投资三种底层思维框架](李国飞最新分享-价值投资三种底层的思维框架.md)",
-    "",
-]
+html = f"""<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>新饭笔记</title>
+<style>
+  body {{ max-width: 760px; margin: 40px auto; padding: 0 20px; font-family: -apple-system, "PingFang SC", sans-serif; line-height: 1.8; color: #222; }}
+  h1 {{ font-size: 1.8em; margin-bottom: 4px; }}
+  .meta {{ color: #888; font-size: 14px; margin-bottom: 32px; }}
+  h2 {{ font-size: 1.1em; margin-top: 2em; margin-bottom: 8px; color: #444; border-bottom: 1px solid #eee; padding-bottom: 4px; }}
+  ul {{ margin: 0; padding-left: 20px; }}
+  li {{ margin: 4px 0; }}
+  a {{ color: #0066cc; text-decoration: none; }}
+  a:hover {{ text-decoration: underline; }}
+  hr {{ border: none; border-top: 1px solid #eee; margin: 32px 0; }}
+</style>
+</head>
+<body>
+<h1>新饭笔记 2026</h1>
+<p class="meta">共 {total} 篇文章</p>
+<hr>
+{items_html}
+<hr>
+<h2>其他</h2>
+<ul>
+  <li><a href="article.html?file=李国飞最新分享-价值投资三种底层的思维框架.md">李国飞最新分享 · 价值投资三种底层思维框架</a></li>
+</ul>
+</body>
+</html>
+"""
 
-with open(os.path.join(BASE, "index.md"), "w", encoding="utf-8") as f:
-    f.write("\n".join(lines))
+with open(os.path.join(BASE, "index.html"), "w", encoding="utf-8") as f:
+    f.write(html)
 
-print(f"index.md 已更新，共 {total} 篇文章")
+print(f"index.html 已生成，共 {total} 篇文章")

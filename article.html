@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>新饭笔记</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  body { max-width: 760px; margin: 40px auto; padding: 0 20px; font-family: -apple-system, "PingFang SC", sans-serif; line-height: 1.8; color: #222; }
+  nav { margin-bottom: 32px; font-size: 14px; }
+  nav a { color: #555; text-decoration: none; }
+  nav a:hover { text-decoration: underline; }
+  h1 { font-size: 1.6em; line-height: 1.4; }
+  h2 { font-size: 1.25em; margin-top: 2em; }
+  blockquote { border-left: 3px solid #ddd; margin: 0; padding-left: 16px; color: #666; }
+  a { color: #0066cc; }
+  hr { border: none; border-top: 1px solid #eee; margin: 32px 0; }
+  #content { min-height: 200px; }
+  #loading { color: #999; }
+</style>
+</head>
+<body>
+<nav><a href="index.html">← 返回目录</a></nav>
+<div id="content"><p id="loading">加载中…</p></div>
+<script>
+  const params = new URLSearchParams(location.search);
+  const file = params.get('file');
+  if (!file) {
+    document.getElementById('content').innerHTML = '<p>未指定文章。</p>';
+  } else {
+    fetch(file)
+      .then(r => r.ok ? r.text() : Promise.reject(r.status))
+      .then(md => {
+        document.getElementById('content').innerHTML = marked.parse(md);
+        const h1 = document.querySelector('h1');
+        if (h1) document.title = h1.textContent + ' — 新饭笔记';
+      })
+      .catch(() => {
+        document.getElementById('content').innerHTML = '<p>文章加载失败。</p>';
+      });
+  }
+</script>
+</body>
+</html>
