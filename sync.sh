@@ -10,7 +10,7 @@ echo "同步文章..."
 # 同步2026年（可按同样格式添加更多年份）
 for folder in 2026/01 2026/02; do
   src="$VAULT/$folder"
-  dst="$REPO/新饭笔记2026/$(basename $folder)"
+  dst="$REPO/notes2026/$(basename $folder)"
   [ -d "$src" ] || continue
   mkdir -p "$dst"
   find "$src" -name "*.md" ! -name "*副本*" -exec cp -u {} "$dst/" \;

@@ -26,7 +26,7 @@ def month_key(filename):
 articles = {}  # month -> [(rel_path, filename)]
 
 for entry in sorted(os.listdir(BASE)):
-    if not re.match(r'^新饭笔记\d{4}$', entry):
+    if not re.match(r'^notes\d{4}$', entry):
         continue
     year_dir = os.path.join(BASE, entry)
     for sub in sorted(os.listdir(year_dir)):
