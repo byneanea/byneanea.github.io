@@ -1,0 +1,15 @@
+title: 新饭笔记
+description: 记录思考与生活
+theme: minima
+encoding: utf-8
+
+markdown: kramdown
+kramdown:
+  input: GFM
+
+plugins:
+  - jekyll-relative-links
+
+relative_links:
+  enabled: true
+  collections: false
